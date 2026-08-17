@@ -228,29 +228,4 @@ Tier 1 additionally needs `pingouin` and `factor-analyzer`.
 
 Survey micro-data is **not** redistributed in this repository.
 
----
 
-## Ethics and governance
-
-No human-subjects data are collected or analyzed in this work. NeuralFortify is
-described illustratively; no efficacy or learning claims are made.
-
-Any future validation study would require IRB approval and parental consent, and
-would operate under COPPA/FERPA with de-identified, sandboxed data release. The
-platform's username-only identity model is privacy-by-architecture: no PII is
-collected from minors.
-
----
-
-## Citation
-
-```bibtex
-@misc{neuralfortify2026,
-  author       = {Yocam, Eric and Vaidyan, Varghese},
-  title        = {NeuralFortify / Defend the Black Box: A Cloud-Based {AI}
-                  Security Learning Platform for {K-12}},
-  year         = {2026},
-  howpublished = {Dakota State University},
-  note         = {NSF STEM K-12 project}
-}
-```
