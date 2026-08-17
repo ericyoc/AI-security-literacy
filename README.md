@@ -94,7 +94,7 @@ and a codebook mapping. See [Tier 1 setup](#tier-1-setup).
 
 ## Quick start
 
-Open `AISL_analysis_v2.ipynb` in Colab and run all cells top to bottom.
+Open `AISL_analysis_poc.ipynb` in Colab and run all cells top to bottom.
 
 ```
 Runtime > Change runtime type > GPU     # optional; D5 training is ~10x faster
