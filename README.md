@@ -7,6 +7,69 @@ Drive, and every stage is resumable.
 
 ---
 
+## Why this exists
+
+AI arrived in schools faster than any guidance about how to use it safely.
+Students are handed black-box systems and expected to intuit what those systems
+can be trusted to do. Teachers are split between adopting AI and fearing it.
+Districts are writing acceptable-use policies while the tools underneath them
+change every few months.
+
+The literacy frameworks that exist teach students to *understand* and *use* AI.
+The cybersecurity frameworks that exist were written before AI-specific threats
+existed. Neither treats **operating securely in an AI-mediated environment** as a
+competency in its own right — with its own dimensions, its own developmental
+progression, and its own teachable skills.
+
+That competency is what AISL defines, across six dimensions spanning the whole
+school ecosystem rather than students alone.
+
+### Why grounding it matters
+
+A competency framework that nobody has tested against data is just a taxonomy.
+Anyone can assert that students should "recognize manipulation" or "calibrate
+trust." The harder question is whether those phrases name **real, measurable
+phenomena** — and if so, what the measurements actually show.
+
+That is what this pipeline is for. It takes each technical dimension and asks
+what public data can establish about it. The answers have already changed the
+framework's claims, in ways that matter:
+
+- **Detection is not pattern-matching against visible cues.** In a corpus built
+  to contain toxicity in equal measure across four bands, most *prompt halves*
+  score in the lowest band — harm tends to sit in the part of the text you have
+  not read yet. That is a sharper and more defensible claim than any statement
+  about how much harmful content exists online.
+- **A moderation label is a threshold decision, not a property of text.** Moving
+  the cutoff from 0.3 to 0.7 swings the share of items labelled toxic by more
+  than twenty percentage points, with a substantial band of genuinely ambiguous
+  cases in between. Learners who treat a verdict as a fact have misunderstood the
+  mechanism.
+- **A robustness number is a property of the evaluation, not the model.** The
+  same classifier, attacked two different ways, produces two different verdicts —
+  and the weaker attack can suggest the model is *gaining* robustness where the
+  stronger one shows it has none.
+
+Each of those is a lesson a learner can be walked through with real models and
+real data, which is the point: the framework is meant to be taught, not just
+cited.
+
+### Why the engineering is part of the point
+
+An earlier version of this pipeline produced a clean-looking adversarial
+robustness curve from a model that was never trained. The figure was plausible.
+The numbers were meaningless.
+
+That failure is the same one the framework's most advanced dimension teaches
+students to catch, so the pipeline is now built to make it structurally hard to
+repeat: attack evaluation is gated on a clean-accuracy sanity check, blocked
+stages announce themselves rather than emitting empty output, sampling is seeded
+and random rather than an ordered slice, and every reported number is written to
+a machine-readable results file instead of transcribed by hand. Reproducibility
+here is not housekeeping — it is the subject matter.
+
+---
+
 ## What it does
 
 The pipeline runs in two tiers.
@@ -24,7 +87,7 @@ and a codebook mapping. See [Tier 1 setup](#tier-1-setup).
 | **D2** | Data & Privacy Security | 1 | RAND AEP |
 | **D3** | Threat & Manipulation Recognition | 2 | RealToxicityPrompts, BBQ |
 | **D4** | Trust Calibration & Verification | 2 | TruthfulQA, BBQ |
-| **D5** | Adversarial & Technical Understanding | 2 | RobustBench, CIFAR-10 + FGSM |
+| **D5** | Adversarial & Technical Understanding | 2 | RobustBench, CIFAR-10 + FGSM/PGD |
 | **D6** | Disposition & Agency | 1 | RAND AEP, Gallup |
 
 ---
@@ -74,10 +137,12 @@ downstream typesetting).
 | Stage ID | Dim. | Dataset | Outputs |
 | --- | --- | --- | --- |
 | `d3_rtp` | D3 | `allenai/real-toxicity-prompts` | `d3_rtp_toxicity.jpg`, `d3_rtp_summary.csv` |
+| `d3_threshold` | D3 | same corpus | `d3_threshold_sensitivity.jpg` + CSV |
 | `d4_truthfulqa` | D4 | `truthfulqa/truthful_qa` (`generation`) | `d4_truthfulqa_categories.jpg` + CSV |
 | `d34_bbq` | D3, D4 | `walledai/BBQ` (11 attribute configs) | `d34_bbq_configs.jpg`, `d34_bbq_counts.csv` |
 | `d5_train` | D5 | CIFAR-10 | `cifar10_cnn.pt` |
-| `d5_fgsm` | D5 | CIFAR-10 + `torchattacks` | `d5_fgsm_sweep.jpg`, `d5_fgsm_sweep.csv` |
+| `d5_fgsm` | D5 | CIFAR-10 + `torchattacks` | `d5_fgsm_sweep.jpg` + CSV |
+| `d5_pgd` | D5 | CIFAR-10 + `torchattacks` | `d5_attack_comparison.jpg` + CSV |
 | `tier1` | D1, D2, D6 | Your survey micro-data | EFA loadings, α table, by-role figure |
 
 Each stage records `ok` / `failed` / `skipped` in `logs/status.json` with a
@@ -148,7 +213,8 @@ attribute configs and reports per-config failures individually.
 
 Also: RTP sampling changed from `select(range(20000))` — the first 20k rows in
 file order — to a seeded random sample, so the reported rate is an unbiased
-estimate. The seed is recorded in the output.
+estimate. The seed is recorded in the output. A PGD comparison and a threshold
+sensitivity analysis were added.
 
 ---
 
