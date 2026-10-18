@@ -82,13 +82,13 @@ housekeeping — it is the subject matter.
 
 The pipeline runs in two tiers.
 
-**Tier 2** grounds the technical dimensions from public sources. No configuration
-needed — open and run. Every dataset downloads automatically.
-
 **Tier 1** grounds the attitudinal dimensions from nationally representative
 survey micro-data that you download yourself under free registration. Until the
 files are present, its stages mark themselves `skipped`. See
 [Tier 1 setup](#tier-1-setup).
+
+**Tier 2** grounds the technical dimensions from public sources. No configuration
+needed — open and run. Every dataset downloads automatically.
 
 | | Dimension | Tier 1 (surveys) | Tier 2 (public data) |
 | --- | --- | --- | --- |
@@ -246,18 +246,15 @@ read `.sav` and `.dta` files.
 
 Every dataset the pipeline analyzes, what it is, and why it is used.
 
-### Tier 2 — public, downloaded automatically
+### Tier 1 — survey micro-data (attitudinal dimensions)
 
-| Dataset | What it is | Why it is used | Dim. | Source / access |
-| --- | --- | --- | --- | --- |
-| **RealToxicityPrompts** | ~99,000 sentence prompts, each split into a prompt half and a continuation and scored for toxicity by the Perspective API; parent sentences were sampled equally from four toxicity bands | Shows that a "toxic" label depends entirely on the chosen threshold, and that the opening fragment of a harmful sentence often looks harmless | D3 | [Hugging Face `allenai/real-toxicity-prompts`](https://huggingface.co/datasets/allenai/real-toxicity-prompts) · Apache-2.0 |
-| **SMS Spam Collection** | 5,574 real SMS text messages, each labelled spam or legitimate | Measures the false-alarm vs. missed-scam trade-off of a scam detector at different thresholds, using the same multi-hot input representation as an in-browser scam classifier | D3 | [UCI ML Repository](https://archive.ics.uci.edu/dataset/228/sms+spam+collection) · CC BY 4.0 |
-| **TruthfulQA** | 817 questions in 38 categories, each written so that a plausible-sounding false answer is the tempting one; generation and multiple-choice configurations | Shows that misconception-prone questions span many domains, and supplies the questions for a measured truthfulness rate | D4 | [Hugging Face `truthfulqa/truthful_qa`](https://huggingface.co/datasets/truthfulqa/truthful_qa) · Apache-2.0 |
-| **GPT-2** (model) | OpenAI's 124M-parameter language model | Scored on TruthfulQA's multiple-choice questions to measure how often a fluent model picks the true answer, against a stated chance level | D4 | [Hugging Face `gpt2`](https://huggingface.co/gpt2) · MIT |
-| **BBQ** | 58,492 question-answering items across 11 social-attribute categories (age, race, religion, and others) | Shows that bias in model answers can be broken down by attribute, and quantifies how unevenly the attributes are covered | D3, D4 | [Hugging Face `walledai/BBQ`](https://huggingface.co/datasets/walledai/BBQ) · open, see dataset card |
-| **CIFAR-10** | 60,000 32×32 color images in 10 classes (50,000 train, 10,000 test) | Trains three small image classifiers and attacks them with single-step (FGSM) and ten-step (PGD) attacks, showing that a robustness number depends on the attack and on the particular trained model | D5 | `torchvision` · public |
-
-### Tier 1 — survey micro-data, free registration, not redistributed
+Tier 1 covers the dimensions about people rather than systems: what is
+permitted, what is exposed, whether people engage, and how they judge threats
+and trust. It asks whether the phenomena those dimensions name are actually
+present in the national population around a student, using nationally
+representative, weighted surveys of U.S. teachers and adults. Each item is
+reported as the weighted share giving a stated response, with a 95% interval.
+These files require free registration and are not redistributed here.
 
 | Dataset | What it is | Why it is used | Dim. | Source / access |
 | --- | --- | --- | --- | --- |
@@ -269,3 +266,20 @@ Every dataset the pipeline analyzes, what it is, and why it is used.
 Survey micro-data is **not** redistributed in this repository. Obtain it directly
 from the providers under their own terms, and place the files as described in
 [Tier 1 setup](#tier-1-setup).
+
+### Tier 2 — public benchmarks (technical dimensions)
+
+Tier 2 covers the dimensions about how AI systems behave: how they can be used
+to manipulate, when their output should be trusted, and how they fail under
+attack. It asks whether those phenomena are real and measurable, using public
+datasets and models that the pipeline downloads and caches automatically. No
+registration or configuration is needed.
+
+| Dataset | What it is | Why it is used | Dim. | Source / access |
+| --- | --- | --- | --- | --- |
+| **RealToxicityPrompts** | ~99,000 sentence prompts, each split into a prompt half and a continuation and scored for toxicity by the Perspective API; parent sentences were sampled equally from four toxicity bands | Shows that a "toxic" label depends entirely on the chosen threshold, and that the opening fragment of a harmful sentence often looks harmless | D3 | [Hugging Face `allenai/real-toxicity-prompts`](https://huggingface.co/datasets/allenai/real-toxicity-prompts) · Apache-2.0 |
+| **SMS Spam Collection** | 5,574 real SMS text messages, each labelled spam or legitimate | Measures the false-alarm vs. missed-scam trade-off of a scam detector at different thresholds, using the same multi-hot input representation as an in-browser scam classifier | D3 | [UCI ML Repository](https://archive.ics.uci.edu/dataset/228/sms+spam+collection) · CC BY 4.0 |
+| **TruthfulQA** | 817 questions in 38 categories, each written so that a plausible-sounding false answer is the tempting one; generation and multiple-choice configurations | Shows that misconception-prone questions span many domains, and supplies the questions for a measured truthfulness rate | D4 | [Hugging Face `truthfulqa/truthful_qa`](https://huggingface.co/datasets/truthfulqa/truthful_qa) · Apache-2.0 |
+| **GPT-2** (model) | OpenAI's 124M-parameter language model | Scored on TruthfulQA's multiple-choice questions to measure how often a fluent model picks the true answer, against a stated chance level | D4 | [Hugging Face `gpt2`](https://huggingface.co/gpt2) · MIT |
+| **BBQ** | 58,492 question-answering items across 11 social-attribute categories (age, race, religion, and others) | Shows that bias in model answers can be broken down by attribute, and quantifies how unevenly the attributes are covered | D3, D4 | [Hugging Face `walledai/BBQ`](https://huggingface.co/datasets/walledai/BBQ) · open, see dataset card |
+| **CIFAR-10** | 60,000 32×32 color images in 10 classes (50,000 train, 10,000 test) | Trains three small image classifiers and attacks them with single-step (FGSM) and ten-step (PGD) attacks, showing that a robustness number depends on the attack and on the particular trained model | D5 | `torchvision` · public |
