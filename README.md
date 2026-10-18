@@ -63,18 +63,18 @@ cited.
 
 ### Why the engineering is part of the point
 
-An earlier version of this pipeline produced a clean-looking adversarial
-robustness curve from a model that was never trained, and a later one labelled
-benchmark results with the wrong categories because two dataset configurations
-did not share row order. Both outputs looked plausible.
+A pipeline can produce figures that look right and are not: a robustness curve
+from a model that was never properly trained, or benchmark results attached to
+the wrong categories because two files were joined by row position. Those are
+the same kinds of failure the framework's most advanced dimension teaches
+students to catch.
 
-Those failures are the same kind the framework's most advanced dimension teaches
-students to catch, so the pipeline is built to make them structurally hard to
-repeat: attack evaluation is gated on a clean-accuracy sanity check, joins are
-made on content rather than position, blocked stages announce themselves rather
-than emitting empty output, sampling is seeded, and every reported number is
-written to a machine-readable results file instead of transcribed by hand.
-Reproducibility here is not housekeeping — it is the subject matter.
+So the pipeline is built to make them structurally hard: attack evaluation is
+gated on a clean-accuracy sanity check, joins are made on content rather than
+position, blocked stages announce themselves rather than emitting empty output,
+sampling is seeded, and every reported number is written to a machine-readable
+results file instead of transcribed by hand. Reproducibility here is not
+housekeeping — it is the subject matter.
 
 ---
 
@@ -221,54 +221,6 @@ number can be checked against the questionnaire.
 
 ---
 
-## Changes
-
-### v3
-
-- **D5 now replicates across three independently trained models** and evaluates
-  on the full 10,000-image test set, with 95% Wilson intervals on every value.
-  Attacks are seeded per model and cuDNN runs deterministically, so reruns are
-  bit-stable.
-- **D4 gained a measured failure rate.** GPT-2 is scored on TruthfulQA's
-  multiple-choice configuration against a stated chance level. Categories are
-  joined to questions by question text: the two configurations do not share row
-  order, and joining by position had silently mislabelled every category.
-- **D3 gained real scam text.** A threshold analysis on the UCI SMS Spam
-  Collection, using the same multi-hot input representation as a deployable
-  in-browser scam classifier.
-- **Tier 1 now runs on real survey data** — three Pew American Trends Panel waves
-  and the RAND American Teacher Panel Fall 2025 survey — replacing the earlier
-  placeholder item map.
-- **The TeX macro export keeps every stage's values.** Values written by the later
-  stages survive the main export instead of being overwritten.
-
-### v2
-
-Three defects in the original notebook produced results that looked valid and
-were not.
-
-**Figures were written to the ephemeral disk.** `FIGDIR` was a relative path, so
-`savefig` wrote to the Colab VM while Drive sat mounted and unused — printing a
-success message every time. All output paths are now rooted at Drive, and
-`savefig` verifies the file exists and is non-empty before returning.
-
-**The FGSM sweep ran against an untrained model.** Clean CIFAR-10 accuracy was
-12% — chance for ten classes — so the accuracy-vs-ε curve measured noise being
-perturbed rather than an attack effect. The model is now actually trained, and a
-sanity gate raises instead of plotting if clean accuracy falls below
-`MIN_CLEAN_ACC`.
-
-**BBQ never loaded.** The call requested `split='test'`, which `walledai/BBQ`
-does not have — it partitions by social attribute. A bare `except` swallowed the
-exception, so no BBQ result ever existed. The loader now enumerates the eleven
-attribute configs and reports per-config failures individually.
-
-Also: RTP sampling changed from `select(range(20000))` — the first 20k rows in
-file order — to a seeded random sample, and a PGD comparison and a threshold
-sensitivity analysis were added.
-
----
-
 ## Reproducibility
 
 - Global seed set for `random`, `numpy` and `torch`; each D5 model and attack is
@@ -292,16 +244,28 @@ read `.sav` and `.dta` files.
 
 ## Datasets
 
-| Dataset | Source | Access |
-| --- | --- | --- |
-| [RealToxicityPrompts](https://huggingface.co/datasets/allenai/real-toxicity-prompts) | Hugging Face | Apache-2.0; downloaded automatically |
-| [TruthfulQA](https://huggingface.co/datasets/truthfulqa/truthful_qa) | Hugging Face | Apache-2.0; downloaded automatically |
-| [BBQ](https://huggingface.co/datasets/walledai/BBQ) | Hugging Face | Open — see dataset card; downloaded automatically |
-| CIFAR-10 | `torchvision` | Public; downloaded automatically |
-| [SMS Spam Collection](https://archive.ics.uci.edu/dataset/228/sms+spam+collection) | UCI ML Repository | CC BY 4.0; downloaded automatically |
-| [GPT-2](https://huggingface.co/gpt2) (model) | Hugging Face | MIT; downloaded automatically |
-| [Pew ATP Waves 142, 152, 168](https://www.pewresearch.org/datasets/) | Pew Research Center | Free account; terms prohibit redistribution |
-| RAND ATP Fall 2025 (GAL1025T) | [RAND Survey Panels data portal](https://www.rspdata.org) | Free registration; terms prohibit redistribution |
+Every dataset the pipeline analyzes, what it is, and why it is used.
+
+### Tier 2 — public, downloaded automatically
+
+| Dataset | What it is | Why it is used | Dim. | Source / access |
+| --- | --- | --- | --- | --- |
+| **RealToxicityPrompts** | ~99,000 sentence prompts, each split into a prompt half and a continuation and scored for toxicity by the Perspective API; parent sentences were sampled equally from four toxicity bands | Shows that a "toxic" label depends entirely on the chosen threshold, and that the opening fragment of a harmful sentence often looks harmless | D3 | [Hugging Face `allenai/real-toxicity-prompts`](https://huggingface.co/datasets/allenai/real-toxicity-prompts) · Apache-2.0 |
+| **SMS Spam Collection** | 5,574 real SMS text messages, each labelled spam or legitimate | Measures the false-alarm vs. missed-scam trade-off of a scam detector at different thresholds, using the same multi-hot input representation as an in-browser scam classifier | D3 | [UCI ML Repository](https://archive.ics.uci.edu/dataset/228/sms+spam+collection) · CC BY 4.0 |
+| **TruthfulQA** | 817 questions in 38 categories, each written so that a plausible-sounding false answer is the tempting one; generation and multiple-choice configurations | Shows that misconception-prone questions span many domains, and supplies the questions for a measured truthfulness rate | D4 | [Hugging Face `truthfulqa/truthful_qa`](https://huggingface.co/datasets/truthfulqa/truthful_qa) · Apache-2.0 |
+| **GPT-2** (model) | OpenAI's 124M-parameter language model | Scored on TruthfulQA's multiple-choice questions to measure how often a fluent model picks the true answer, against a stated chance level | D4 | [Hugging Face `gpt2`](https://huggingface.co/gpt2) · MIT |
+| **BBQ** | 58,492 question-answering items across 11 social-attribute categories (age, race, religion, and others) | Shows that bias in model answers can be broken down by attribute, and quantifies how unevenly the attributes are covered | D3, D4 | [Hugging Face `walledai/BBQ`](https://huggingface.co/datasets/walledai/BBQ) · open, see dataset card |
+| **CIFAR-10** | 60,000 32×32 color images in 10 classes (50,000 train, 10,000 test) | Trains three small image classifiers and attacks them with single-step (FGSM) and ten-step (PGD) attacks, showing that a robustness number depends on the attack and on the particular trained model | D5 | `torchvision` · public |
+
+### Tier 1 — survey micro-data, free registration, not redistributed
+
+| Dataset | What it is | Why it is used | Dim. | Source / access |
+| --- | --- | --- | --- | --- |
+| **RAND American Teacher Panel, Fall 2025 (GAL1025T)** | Nationally representative, weighted survey of 2,012 U.S. public school teachers on careers and AI, fielded with Gallup | Measures whether schools have an AI policy and how clear it is, teachers' own AI use and support for it, and whether teachers expect their own vs. students' AI use to make teaching easier or harder | D1, D6 | [RAND Survey Panels data portal](https://www.rspdata.org) · free registration |
+| **Pew American Trends Panel, Wave 142** (Feb 2024) | Nationally representative, weighted survey of U.S. adults | Measures norms of AI attribution (should AI credit its sources) and trust in information from ChatGPT | D1, D4 | [Pew datasets](https://www.pewresearch.org/datasets/) · free account |
+| **Pew American Trends Panel, Wave 152** (Aug 2024) | Nationally representative, weighted survey of U.S. adults on AI | Measures concern about AI misusing personal information, impersonating people and spreading inaccurate information; perceived control over AI; and concern vs. excitement about AI | D2, D3, D4, D6 | [Pew datasets](https://www.pewresearch.org/datasets/) · free account |
+| **Pew American Trends Panel, Wave 168** (Apr 2025) | Nationally representative, weighted survey of U.S. adults on online scams | Measures scam exposure, money lost to scams, self-assessed ability to protect oneself, and whether AI will make scams more common | D3 | [Pew datasets](https://www.pewresearch.org/datasets/) · free account |
 
 Survey micro-data is **not** redistributed in this repository. Obtain it directly
-from the providers under their own terms.
+from the providers under their own terms, and place the files as described in
+[Tier 1 setup](#tier-1-setup).
